@@ -1,13 +1,19 @@
 #!/bin/zsh
-# A script for checking possible vulnerabilitites in a given org on GitHub
+#
+# A script for checking possible vulnerabilities in a given org on GitHub. Outputs only critical vulnerabilities to avoid verbosity
 # usage: ./vulnerabilities.sh <name_of_org>
-# requirements: GitHub CLI (https://cli.github.com/) and OpenSSF Scorecard standalone (https://github.com/ossf/scorecard)
+#
+# requirements: 
+# - zsh (or possibly bash minimum version 4)
+# - GitHub CLI (https://cli.github.com/)
+# - OpenSSF Scorecard standalone (https://github.com/ossf/scorecard)
+#
 if [ -z "$1" ]; then
     echo "Need to provide the name of an organization"
     exit -1
 fi
-repos=($(gh repo list $1 --limit 150 --json name --jq '.[].name'))
-typeset -A dictionary # an associative array, available in zsh or bash 4
+repos=($(gh repo list $1 --limit 500 --json name --jq '.[].name'))
+typeset -A dictionary 
 echo 'Found '${#repos[@]}'' $1 'repos'
 critical_count_tot=0
 for repo in $repos; do
