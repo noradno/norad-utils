@@ -1,13 +1,13 @@
 #!/bin/zsh
 # A script for checking possible vulnerabilitites in a given org on GitHub
-# usage: ./vulnerbailities.sh <name_of_org>
-# requirements: GitHub CLI and Scorecard
+# usage: ./vulnerabilities.sh <name_of_org>
+# requirements: GitHub CLI (https://cli.github.com/) and OpenSSF Scorecard standalone (https://github.com/ossf/scorecard)
 if [ -z "$1" ]; then
     echo "Need to provide the name of an organization"
     exit -1
 fi
 repos=($(gh repo list $1 --limit 150 --json name --jq '.[].name'))
-typeset -A hash
+typeset -A dictionary # an associative array, available in zsh or bash 4
 echo 'Found '${#repos[@]}'' $1 'repos'
 critical_count_tot=0
 for repo in $repos; do
@@ -24,17 +24,17 @@ for repo in $repos; do
             score=$json[2]
             url=$json[3]
             echo $url' '$severity' '$score
-            if [[ -v hash[$url] ]]; then
-                num=${hash[$url]}
-                hash[$url]=$((num+1))
+            if [[ -v dictionary[$url] ]]; then
+                num=${dictionary[$url]}
+                dictionary[$url]=$((num+1))
             else
-                hash[$url]=1
+                dictionary[$url]=1
             fi
         fi
     done
     echo 'Number of critical vulnerabilities in '$repo': '$critical_count
 done
-for key val in "${(@kv)hash}"; do
+for key val in "${(@kv)dictionary}"; do
     echo "$key: $val occurences"
 done
 echo '\nNumber of total critical vulnerabilities : '$critical_count_tot
