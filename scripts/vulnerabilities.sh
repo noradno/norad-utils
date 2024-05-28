@@ -7,6 +7,7 @@
 # - zsh (or possibly bash minimum version 4)
 # - GitHub CLI (https://cli.github.com/)
 # - OpenSSF Scorecard standalone (https://github.com/ossf/scorecard)
+# - jq (https://jqlang.github.io/jq/)
 #
 if [ -z "$1" ]; then
     echo "Need to provide the name of an organization"
@@ -14,10 +15,10 @@ if [ -z "$1" ]; then
 fi
 repos=($(gh repo list $1 --limit 500 --json name --jq '.[].name'))
 typeset -A dictionary 
-echo 'Found '${#repos[@]}'' $1 'repos'
+echo "Found ${#repos[@]} $1 repos"
 critical_count_tot=0
 for repo in $repos; do
-    echo '\nChecking '$repo
+    echo "\nChecking $repo"
     vulnerabilities=($(scorecard --checks=Vulnerabilities --show-details --format=json --repo=github.com/$1/$repo | jq 'select(.checks.[].details != null).checks.[].details.[]' | grep -oE -e "GHSA-[^ \"]*"))
     critical_count=0
     for vulnerability in $vulnerabilities; do
@@ -29,7 +30,7 @@ for repo in $repos; do
             critical_count_tot=$((critical_count_tot+1))
             score=$json[2]
             url=$json[3]
-            echo $url' '$severity' '$score
+            echo "$url $severity $score"
             if [[ -v dictionary[$url] ]]; then
                 num=${dictionary[$url]}
                 dictionary[$url]=$((num+1))
@@ -38,9 +39,10 @@ for repo in $repos; do
             fi
         fi
     done
-    echo 'Number of critical vulnerabilities in '$repo': '$critical_count
+    echo "Number of critical vulnerabilities in $repo: $critical_count"
 done
+echo 
 for key val in "${(@kv)dictionary}"; do
     echo "$key: $val occurences"
 done
-echo '\nNumber of total critical vulnerabilities : '$critical_count_tot
+echo "\nNumber of total critical vulnerabilities : $critical_count_tot"
