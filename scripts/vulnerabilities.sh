@@ -41,8 +41,16 @@ for repo in $repos; do
     done
     echo "Number of critical vulnerabilities in $repo: $critical_count"
 done
-echo 
-for key val in "${(@kv)dictionary}"; do
-    echo "$key: $val occurences"
-done
-echo "\nNumber of total critical vulnerabilities : $critical_count_tot"
+echo "\n---SUMMARY---"
+if [[ $critical_count_tot>0 ]]; then
+    echo "Number of total critical vulnerabilities found in $1: $critical_count_tot" 
+    for key val in "${(@kv)dictionary}"; do
+        foo="occurrences"
+        if [[ $val == 1 ]];then
+            foo="occurrence"
+        fi
+        echo "$key : $val $foo"
+    done
+else
+    echo "No critical vulnerabilities found"
+fi
