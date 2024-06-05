@@ -19,7 +19,7 @@ echo "Found ${#repos[@]} $1 repos"
 critical_count_tot=0
 for repo in $repos; do
     echo "\nChecking $repo"
-    vulnerabilities=($(scorecard --checks=Vulnerabilities --show-details --format=json --repo=github.com/$1/$repo | jq 'select(.checks.[].details != null).checks.[].details.[]' | grep -oE -e "GHSA-[^ \"]*"))
+    vulnerabilities=($(scorecard --checks=Vulnerabilities --show-details --format=json --repo=github.com/$1/$repo | jq 'select(.checks != null and .checks.[].details != null).checks.[].details.[]' | grep -oE -e "GHSA-[^ \"]*"))
     critical_count=0
     for vulnerability in $vulnerabilities; do
         json=($(gh api --method GET -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /advisories -F ghsa_id="$vulnerability" --jq ".[].severity,if .[].cvss.score != null then .[].cvss.score else 0 end,.[].html_url"))
