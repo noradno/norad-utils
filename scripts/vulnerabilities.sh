@@ -1,7 +1,7 @@
 #!/bin/zsh
 #
-# A script for checking possible vulnerabilities in a given org on GitHub. Outputs only critical vulnerabilities to avoid verbosity
-# usage: ./vulnerabilities.sh <name_of_org>
+# A script for checking possible vulnerabilities for a given org or user on GitHub. Outputs only critical vulnerabilities to avoid verbosity
+# usage: ./vulnerabilities.sh <name_of_org|name_of_user>
 #
 # requirements: 
 # - zsh (or possibly bash minimum version 4)
@@ -10,10 +10,10 @@
 # - jq (https://jqlang.github.io/jq/)
 #
 if [ -z "$1" ]; then
-    echo "Need to provide the name of an organization"
+    echo "Need to provide the name of an organization or a user"
     exit -1
 fi
-repos=($(gh repo list $1 --limit 500 --json name --jq '.[].name'))
+repos=($(gh repo list $1 --limit 500 --no-archived --source --json name --jq '.[].name'))
 typeset -A dictionary 
 echo "Found ${#repos[@]} $1 repos"
 critical_count_tot=0
