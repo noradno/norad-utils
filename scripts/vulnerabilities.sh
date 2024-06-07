@@ -14,9 +14,9 @@ if [ -z "$1" ]; then
     exit -1
 fi
 repos=($(gh repo list $1 --limit 500 --no-archived --source --json name --jq '.[].name'))
-typeset -A dictionary 
 echo "Found ${#repos[@]} $1 repos"
 critical_count_tot=0
+typeset -A dictionary 
 for repo in $repos; do
     echo "\nChecking $repo"
     vulnerabilities=($(scorecard --checks=Vulnerabilities --show-details --format=json --repo=github.com/$1/$repo | jq 'select(.checks != null and .checks.[].details != null).checks.[].details.[]' | grep -oE -e "GHSA-[^ \"]*"))
@@ -26,7 +26,6 @@ for repo in $repos; do
         severity=$json[1]
         if [[ $severity == "critical" ]]; then
             critical_count=$((critical_count+1))            
-            critical_count_tot=$((critical_count_tot+1))
             score=$json[2]
             url=$json[3]
             echo "$url $severity $score"
@@ -39,6 +38,7 @@ for repo in $repos; do
         fi
     done
     echo "Number of critical vulnerabilities in $repo: $critical_count"
+    critical_count_tot=$((critical_count_tot+critical_count))
 done
 echo "\n---SUMMARY---"
 if [[ $critical_count_tot>0 ]]; then
